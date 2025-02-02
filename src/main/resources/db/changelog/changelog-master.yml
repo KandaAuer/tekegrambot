@@ -1,0 +1,70 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: bot
+      changes:
+        - createTable:
+            tableName: user_notifications
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: chat_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: message
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: notification_time
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: completed
+                  type: boolean
+                  defaultValue: false
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 2
+      author: bot
+      changes:
+        - addColumn:
+            tableName: user_notifications
+            columns:
+              - column:
+                  name: description
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+
+  - changeSet:
+      id: 3
+      author: bot
+      changes:
+        - createIndex:
+            tableName: user_notifications
+            indexName: idx_chat_id
+            columns:
+              - column:
+                  name: chat_id
+
+  - changeSet:
+      id: 4
+      author: bot
+      changes:
+        - createIndex:
+            tableName: user_notifications
+            indexName: idx_notification_time
+            columns:
+              - column:
+                  name: notification_time
