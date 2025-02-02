@@ -1,20 +1,30 @@
 package pro.sky.telegrambot.entity;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(name = "notifications")
+@Data
+@NoArgsConstructor
 public class Notification {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long chatId;
-    private String text;
-    private LocalDateTime notificationTime;
 
-    public Notification() {
-    }
+    @Column(name = "chat_id", nullable = false)
+    private Long chatId;
+
+    @Column(name = "text", nullable = false)
+    private String text;
+
+    @Column(name = "notification_time", nullable = false)
+    private LocalDateTime notificationTime;
 
     public Notification(Long chatId, String text, LocalDateTime notificationTime) {
         this.chatId = chatId;
@@ -22,36 +32,19 @@ public class Notification {
         this.notificationTime = notificationTime;
     }
 
-    public Long getId() {
-        return id;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Notification that = (Notification) o;
+        return Objects.equals(id, that.id) &&
+                Objects.equals(chatId, that.chatId) &&
+                Objects.equals(text, that.text) &&
+                Objects.equals(notificationTime, that.notificationTime);
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, chatId, text, notificationTime);
     }
-
-    public Long getChatId() {
-        return chatId;
-    }
-
-    public void setChatId(Long chatId) {
-        this.chatId = chatId;
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
-    }
-
-    public LocalDateTime getNotificationTime() {
-        return notificationTime;
-    }
-
-    public void setNotificationTime(LocalDateTime notificationTime) {
-        this.notificationTime = notificationTime;
-    }
-
 }
