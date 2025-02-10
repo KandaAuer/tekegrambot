@@ -9,10 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -27,29 +26,22 @@ public class NotificationScheduler {
         this.bot = bot;
     }
 
-    @Scheduled(cron = "0 * * * * *") // Запускается каждую минуту
+    @Scheduled(cron = "0 * * * * *") // Каждую минуту
+    @Transactional
     public void checkNotifications() {
         LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
-        List<NotificationTask> notifications = notificationTaskRepository.findAll();
-        List<NotificationTask> notificationsToDelete = new ArrayList<>(); // Создаём список на удаление
 
+        // Загружаем ТОЛЬКО те уведомления, которые нужно отправить
+        List<NotificationTask> notifications = notificationTaskRepository.findReadyNotifications(now);
+
+        // Отправляем уведомления
         for (NotificationTask notification : notifications) {
-            if (notification.getNotificationTime().truncatedTo(ChronoUnit.MINUTES).equals(now)) {
-                sendMessage(notification.getChatId(), "🔔 Напоминание: " + notification.getMessage());
-                notificationsToDelete.add(notification); // Добавляем в список на удаление
-            }
+            sendMessage(notification.getChatId(), "🔔 Напоминание: " + notification.getMessage());
         }
 
-        // Удаляем все уведомления после цикла
-        for(NotificationTask notification: notificationsToDelete) {
-            try {
-                notificationTaskRepository.delete(notification);
-            } catch (Exception e) {
-                logger.error("Ошибка при удалении уведомления: {}", e.getMessage());
-            }
-        }
+        // Удаляем все обработанные уведомления одним SQL-запросом (без findAll!)
+        notificationTaskRepository.deleteOldNotifications(now);
     }
-
 
     private void sendMessage(long chatId, String messageText) {
         SendMessage message = new SendMessage(chatId, messageText);
